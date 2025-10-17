@@ -58,7 +58,8 @@ const Index = () => {
   const currentWeight = weighings[weighings.length - 1].weight;
   const weightLost = initialWeight - currentWeight;
   const progressPercentage = ((initialWeight - currentWeight) / (initialWeight - goalWeight) * 100).toFixed(1);
-  const daysInProject = Math.floor((new Date().getTime() - new Date(initialDate).getTime()) / (1000 * 60 * 60 * 24));
+  const lastWeighingDate = weighings[weighings.length - 1].date;
+  const daysInProject = Math.floor((new Date(lastWeighingDate).getTime() - new Date(initialDate).getTime()) / (1000 * 60 * 60 * 24));
   
   const chartData = [
     { date: initialWeighing.date, weight: initialWeighing.weight },
