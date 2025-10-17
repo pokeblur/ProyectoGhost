@@ -176,11 +176,14 @@ const Index = () => {
                       <div className="flex flex-col justify-end pb-4">
                         <span className="text-6xl text-primary font-black">KG</span>
                         <span className="text-sm text-muted-foreground font-bold mt-2">
-                          {new Date(weighings[weighings.length - 1].date).toLocaleDateString('es-ES', { 
-                            day: 'numeric', 
-                            month: 'short',
-                            year: 'numeric'
-                          })}
+                          {(() => {
+                            const months: { [key: number]: string } = {
+                              1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
+                              7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
+                            };
+                            const [year, month, day] = weighings[weighings.length - 1].date.split('-').map(Number);
+                            return `${day} de ${months[month]} de ${year}`;
+                          })()}
                         </span>
                       </div>
                     </div>
