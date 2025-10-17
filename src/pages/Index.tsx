@@ -1,7 +1,8 @@
-import { Target, TrendingDown, Calendar, Weight, Activity, Flame, Zap, Trophy, Sparkles, Star, Rocket, Award } from 'lucide-react';
+import { Target, TrendingDown, TrendingUp, Calendar, Weight, Activity, Flame, Zap, Trophy, Sparkles, Star, Rocket, Award, Minus, BarChart3 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import WeightChart from '@/components/WeightChart';
 import WeighingCard from '@/components/WeighingCard';
+import BodyCompositionChart from '@/components/BodyCompositionChart';
 import logoImage from '@/assets/proyecto-ghost-logo.png';
 
 const Index = () => {
@@ -65,6 +66,44 @@ const Index = () => {
   ];
 
   const latestMetrics = weighings[weighings.length - 1];
+  const previousMetrics = weighings.length > 1 ? weighings[weighings.length - 2] : null;
+
+  // Calcular tendencias
+  const getTrend = (current: number | undefined, previous: number | undefined) => {
+    if (!current || !previous) return null;
+    const diff = current - previous;
+    if (Math.abs(diff) < 0.1) return { icon: Minus, color: 'text-muted-foreground', value: diff };
+    return diff > 0 
+      ? { icon: TrendingUp, color: 'text-red-500', value: diff }
+      : { icon: TrendingDown, color: 'text-green-500', value: diff };
+  };
+
+  // Calcular promedios
+  const calculateAverages = () => {
+    if (weighings.length < 2) return null;
+    
+    const firstDate = new Date(weighings[0].date);
+    const lastDate = new Date(weighings[weighings.length - 1].date);
+    const daysDiff = Math.floor((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+    const weeksDiff = daysDiff / 7;
+    
+    const totalWeightLoss = weighings[0].weight - weighings[weighings.length - 1].weight;
+    const weeklyAverage = weeksDiff > 0 ? totalWeightLoss / weeksDiff : 0;
+    
+    return {
+      weeklyAverage: weeklyAverage.toFixed(2),
+      totalDays: daysDiff,
+      totalWeightLoss: totalWeightLoss.toFixed(1)
+    };
+  };
+
+  const averages = calculateAverages();
+
+  const bodyCompositionData = weighings.map(w => ({
+    date: w.date,
+    bodyFat: w.bodyFat,
+    muscle: w.muscle
+  }));
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -268,25 +307,104 @@ const Index = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              { label: 'BMI', value: latestMetrics.bmi, icon: Activity },
-              { label: 'Grasa', value: `${latestMetrics.bodyFat}%`, icon: TrendingDown },
-              { label: 'Músculo', value: `${latestMetrics.muscle}%`, icon: Zap },
-              { label: 'G. Visceral', value: latestMetrics.visceralFat, icon: Target },
-              { label: 'Edad Corp.', value: latestMetrics.bodyAge, icon: Calendar }
-            ].map((metric, idx) => (
-              <div 
-                key={idx}
-                className="relative group"
-              >
-                <div className="relative p-5 bg-background rounded-xl border-2 border-border/60 hover:border-primary/60 transition-all">
-                  <metric.icon className="h-6 w-6 text-primary mb-3" />
-                  <span className="text-xs font-black text-muted-foreground uppercase tracking-wider block mb-2">{metric.label}</span>
-                  <span className="text-3xl font-black text-primary block">{metric.value}</span>
+              { 
+                label: 'BMI', 
+                value: latestMetrics.bmi, 
+                icon: Activity,
+                prevValue: previousMetrics?.bmi 
+              },
+              { 
+                label: 'Grasa', 
+                value: latestMetrics.bodyFat, 
+                suffix: '%',
+                icon: TrendingDown,
+                prevValue: previousMetrics?.bodyFat 
+              },
+              { 
+                label: 'Músculo', 
+                value: latestMetrics.muscle, 
+                suffix: '%',
+                icon: Zap,
+                prevValue: previousMetrics?.muscle 
+              },
+              { 
+                label: 'G. Visceral', 
+                value: latestMetrics.visceralFat, 
+                icon: Target,
+                prevValue: previousMetrics?.visceralFat 
+              },
+              { 
+                label: 'Edad Corp.', 
+                value: latestMetrics.bodyAge, 
+                icon: Calendar,
+                prevValue: previousMetrics?.bodyAge 
+              }
+            ].map((metric, idx) => {
+              const trend = getTrend(metric.value, metric.prevValue);
+              return (
+                <div 
+                  key={idx}
+                  className="relative group"
+                >
+                  <div className="relative p-5 bg-background rounded-xl border-2 border-border/60 hover:border-primary/60 transition-all">
+                    <metric.icon className="h-6 w-6 text-primary mb-3" />
+                    <span className="text-xs font-black text-muted-foreground uppercase tracking-wider block mb-2">{metric.label}</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-primary">{metric.value}{metric.suffix || ''}</span>
+                      {trend && (
+                        <div className={`flex items-center gap-1 ${trend.color}`}>
+                          <trend.icon className="h-4 w-4" />
+                          <span className="text-xs font-bold">{Math.abs(trend.value).toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
+
+        {/* Promedios Section */}
+        {averages && (
+          <Card className="p-8 bg-card border-3 border-primary/40 shadow-xl mb-8">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 bg-primary/20 rounded-2xl">
+                <BarChart3 className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-black text-foreground uppercase tracking-tight">Estadísticas del Proyecto</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="relative group">
+                <div className="relative text-center p-6 bg-background rounded-2xl border-2 border-primary/30 hover:border-primary/60 transition-all">
+                  <Flame className="h-10 w-10 text-primary mx-auto mb-4 animate-pulse" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-[0.3em] mb-2 font-black">Promedio Semanal</p>
+                  <p className="text-5xl font-black text-primary">-{averages.weeklyAverage}</p>
+                  <p className="text-sm text-muted-foreground font-bold mt-2 uppercase tracking-wider">kg por semana</p>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <div className="relative text-center p-6 bg-background rounded-2xl border-2 border-primary/30 hover:border-primary/60 transition-all">
+                  <Calendar className="h-10 w-10 text-foreground mx-auto mb-4" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-[0.3em] mb-2 font-black">Días Totales</p>
+                  <p className="text-5xl font-black text-foreground">{averages.totalDays}</p>
+                  <p className="text-sm text-muted-foreground font-bold mt-2 uppercase tracking-wider">días de progreso</p>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <div className="relative text-center p-6 bg-background rounded-2xl border-2 border-primary/30 hover:border-primary/60 transition-all">
+                  <Trophy className="h-10 w-10 text-primary mx-auto mb-4 animate-pulse" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-[0.3em] mb-2 font-black">Total Perdido</p>
+                  <p className="text-5xl font-black text-primary">-{averages.totalWeightLoss}</p>
+                  <p className="text-sm text-muted-foreground font-bold mt-2 uppercase tracking-wider">kilogramos</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Chart Section */}
         <Card className="p-8 bg-card border-3 border-primary/40 shadow-xl mb-8">
@@ -295,6 +413,15 @@ const Index = () => {
             <h2 className="text-3xl font-black text-foreground uppercase tracking-tight">Evolución del Peso</h2>
           </div>
           <WeightChart data={chartData} goal={goalWeight} />
+        </Card>
+
+        {/* Body Composition Chart */}
+        <Card className="p-8 bg-card border-3 border-primary/40 shadow-xl mb-8">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-16 w-2 bg-primary rounded-full"></div>
+            <h2 className="text-3xl font-black text-foreground uppercase tracking-tight">Composición Corporal</h2>
+          </div>
+          <BodyCompositionChart data={bodyCompositionData} />
         </Card>
 
         {/* History Section */}
