@@ -82,9 +82,13 @@ const Index = () => {
   const calculateAverages = () => {
     if (weighings.length < 2) return null;
     
-    const firstDate = new Date(initialDate); // Usar fecha inicial del proyecto
-    const lastDate = new Date(weighings[weighings.length - 1].date);
-    const daysDiff = Math.floor((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+    // Calcular días desde el inicio hasta la fecha del último pesaje
+    const [startYear, startMonth, startDay] = initialDate.split('-').map(Number);
+    const [endYear, endMonth, endDay] = weighings[weighings.length - 1].date.split('-').map(Number);
+    
+    const startDate = new Date(startYear, startMonth - 1, startDay);
+    const endDate = new Date(endYear, endMonth - 1, endDay);
+    const daysDiff = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const weeksDiff = daysDiff / 7;
     
     const totalWeightLoss = initialWeight - weighings[weighings.length - 1].weight;
