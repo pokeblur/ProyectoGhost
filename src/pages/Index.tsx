@@ -2,7 +2,6 @@ import { Target, TrendingDown, TrendingUp, Calendar, Weight, Activity, Flame, Za
 import { Card } from '@/components/ui/card';
 import WeightChart from '@/components/WeightChart';
 import WeighingCard from '@/components/WeighingCard';
-import BodyCompositionChart from '@/components/BodyCompositionChart';
 import logoImage from '@/assets/proyecto-ghost-logo.png';
 
 const Index = () => {
@@ -83,12 +82,12 @@ const Index = () => {
   const calculateAverages = () => {
     if (weighings.length < 2) return null;
     
-    const firstDate = new Date(weighings[0].date);
+    const firstDate = new Date(initialDate); // Usar fecha inicial del proyecto
     const lastDate = new Date(weighings[weighings.length - 1].date);
     const daysDiff = Math.floor((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
     const weeksDiff = daysDiff / 7;
     
-    const totalWeightLoss = weighings[0].weight - weighings[weighings.length - 1].weight;
+    const totalWeightLoss = initialWeight - weighings[weighings.length - 1].weight;
     const weeklyAverage = weeksDiff > 0 ? totalWeightLoss / weeksDiff : 0;
     
     return {
@@ -99,12 +98,6 @@ const Index = () => {
   };
 
   const averages = calculateAverages();
-
-  const bodyCompositionData = weighings.map(w => ({
-    date: w.date,
-    bodyFat: w.bodyFat,
-    muscle: w.muscle
-  }));
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -414,15 +407,6 @@ const Index = () => {
             <h2 className="text-3xl font-black text-foreground uppercase tracking-tight">Evolución del Peso</h2>
           </div>
           <WeightChart data={chartData} goal={goalWeight} />
-        </Card>
-
-        {/* Body Composition Chart */}
-        <Card className="p-8 bg-card border-3 border-primary/40 shadow-xl mb-8">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-16 w-2 bg-primary rounded-full"></div>
-            <h2 className="text-3xl font-black text-foreground uppercase tracking-tight">Composición Corporal</h2>
-          </div>
-          <BodyCompositionChart data={bodyCompositionData} />
         </Card>
 
         {/* History Section */}
