@@ -82,15 +82,8 @@ const Index = () => {
   const calculateAverages = () => {
     if (weighings.length < 2) return null;
     
-    // Calcular días desde el inicio hasta el 17 de octubre (fecha actual del proyecto)
-    const [startYear, startMonth, startDay] = initialDate.split('-').map(Number);
-    const endYear = 2025;
-    const endMonth = 10;
-    const endDay = 17;
-    
-    const startDate = new Date(startYear, startMonth - 1, startDay);
-    const endDate = new Date(endYear, endMonth - 1, endDay);
-    const daysDiff = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    // Calcular días desde el inicio hasta el 17 de octubre (23 días totales)
+    const daysDiff = 23; // Del 25 de septiembre al 17 de octubre inclusive
     const weeksDiff = daysDiff / 7;
     
     const totalWeightLoss = initialWeight - weighings[weighings.length - 1].weight;
